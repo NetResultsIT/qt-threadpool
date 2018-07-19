@@ -161,6 +161,9 @@ NRThreadPool::handleObjectDestruction(QObject *i_op)
     TPDBG << "Object was running on thread" << tid << "removing it...";
     this->decreaseThreadObjects(tid, i_op);
     TPDBG << this->getPoolStatus();
+
+    // notify the new status
+    emit sigThreadPoolStatusChanged(threadAllocationMap());
 }
 
 

@@ -21,6 +21,8 @@
 #endif
 
 
+typedef QMap<int,int> TPoolAllocationMap;
+
 
 class RunningQThreadInfo
 {
@@ -78,12 +80,16 @@ public:
      *  returns a map with the thread id -> no of running objects
      * \returns the map with the thread id to running object mapping
      */
-    QMap<int, int> threadAllocationMap();
+    TPoolAllocationMap threadAllocationMap();
 
 signals:
+    void sigThreadPoolStatusChanged(const TPoolAllocationMap &threadAllocMap);
 
 public slots:
 
 };
 
-#endif // QTHREADPOOL_H
+#include <QMetaType>
+Q_DECLARE_METATYPE(TPoolAllocationMap)
+
+#endif // NRTHREADPOOL_H
