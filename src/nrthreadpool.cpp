@@ -7,6 +7,11 @@
 BEGIN_NRTHREADPOOL_NAMESPACE
 
 
+static QString generateThreadName(const QString &name, int i)
+{
+    return QString("%1 T_%2").arg(name).arg(i);
+}
+
 /* *********************** *
  * RUNNINGTHREADINFO STUFF *
  * *********************** */
@@ -43,11 +48,12 @@ NRThreadPool::NRThreadPool(int numberOfThreads2Spawn, const QString &poolname, Q
     m_threadUsagePolicy(RoundRobinPolicy),
     m_poolName(poolname)
 {
+    this->setObjectName(m_poolName);
     m_numOfThreads = (numberOfThreads2Spawn == 0) ? QThread::idealThreadCount() : numberOfThreads2Spawn;
     TPDBG << "NRThreadPool is spawning" << m_numOfThreads << "threads";
     for (int i = 0; i < m_numOfThreads; i++) {
         QThread *t = new QThread(this);
-        t->setObjectName(m_poolName + " T_" + QString::number(i));
+        t->setObjectName(generateThreadName(m_poolName, i));
         TPDBG << "Spawned Thread" << i << t;
         m_v.append( t );
         m_threadUsageCountMap.insert(i, RunningQThreadInfo(i));
@@ -74,8 +80,8 @@ NRThreadPool::~NRThreadPool()
 void
 NRThreadPool::renameThreads(const QString &name)
 {
-    foreach(QThread *tp, m_v) {
-        tp->setObjectName(name + "_Thread");
+    for (int i = 0; i < m_numOfThreads; i++) {
+        m_v[i]->setObjectName(generateThreadName(name, i));
     }
 }
 
@@ -85,8 +91,9 @@ NRThreadPool::renameThreads(const QString &name)
 void
 NRThreadPool::setPoolName(const QString &name)
 {
-    this->setObjectName(name);
-    this->renameThreads(name);
+    m_poolName = name;
+    this->setObjectName(m_poolName);
+    this->renameThreads(m_poolName);
 }
 
 
