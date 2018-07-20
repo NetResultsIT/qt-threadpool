@@ -9,6 +9,18 @@
 #include <QMap>
 #include <QDebug>
 
+
+#ifdef USE_NRTHREADPOOL_NAMESPACE
+#define NRTHREADPOOL_NAMESPACE NRThreadPoolV1_1
+#define BEGIN_NRTHREADPOOL_NAMESPACE namespace NRTHREADPOOL_NAMESPACE {
+#define END_NRTHREADPOOL_NAMESPACE }
+#else
+#define NRTHREADPOOL_NAMESPACE
+#define BEGIN_NRTHREADPOOL_NAMESPACE
+#define END_NRTHREADPOOL_NAMESPACE
+#endif
+
+
 #ifdef ENABLE_TPOOL_DBG
     #define TPDBG qDebug()
 #else
@@ -21,8 +33,9 @@
 #endif
 
 
-typedef QMap<int,int> TPoolAllocationMap;
+BEGIN_NRTHREADPOOL_NAMESPACE
 
+typedef QMap<int,int> TPoolAllocationMap;
 
 class RunningQThreadInfo
 {
@@ -89,7 +102,13 @@ public slots:
 
 };
 
+END_NRTHREADPOOL_NAMESPACE
+
 #include <QMetaType>
+#ifdef USE_NRTHREADPOOL_NAMESPACE
+Q_DECLARE_METATYPE(NRTHREADPOOL_NAMESPACE::TPoolAllocationMap)
+#else
 Q_DECLARE_METATYPE(TPoolAllocationMap)
+#endif
 
 #endif // NRTHREADPOOL_H
