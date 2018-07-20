@@ -4,6 +4,9 @@
 #include <limits>
 
 
+BEGIN_NRTHREADPOOL_NAMESPACE
+
+
 /* *********************** *
  * RUNNINGTHREADINFO STUFF *
  * *********************** */
@@ -270,7 +273,8 @@ NRThreadPool::getPoolStatus()
     return sl.join(" -- ");
 }
 
-QMap<int, int> NRThreadPool::threadAllocationMap()
+TPoolAllocationMap
+NRThreadPool::threadAllocationMap()
 {
     //m_threadUsageCountMap
     QMap<int, int> m;
@@ -281,3 +285,4 @@ QMap<int, int> NRThreadPool::threadAllocationMap()
     return m;
 }
 
+END_NRTHREADPOOL_NAMESPACE
