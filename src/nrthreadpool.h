@@ -83,7 +83,7 @@ public:
     TPoolAllocationMap threadAllocationMap();
 
 signals:
-    void sigThreadPoolStatusChanged(const TPoolAllocationMap &threadAllocMap);
+    void sigThreadAllocationChanged(const TPoolAllocationMap &threadAllocMap);
 
 public slots:
 

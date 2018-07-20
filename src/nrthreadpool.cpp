@@ -99,6 +99,9 @@ NRThreadPool::increaseThreadObjects(int tid, QObject *o)
     mux.lock();
     m_threadUsageCountMap[tid].addObject(o);
     mux.unlock();
+
+    // notify the new status
+    emit sigThreadAllocationChanged(threadAllocationMap());
 }
 
 
@@ -110,10 +113,11 @@ NRThreadPool::increaseThreadObjects(int tid, QObject *o)
 void
 NRThreadPool::decreaseThreadObjects(int tid, QObject *o)
 {
-    QMutexLocker lock(&mux);
+    mux.lock();
     if ( !m_threadUsageCountMap.contains(tid) )
     {
         TPDBG << "Thread " << tid << " not found in the map, aborting decrease operation";
+        mux.unlock();
         return;
     }
     m_threadUsageCountMap[tid].removeObject(o);
@@ -122,6 +126,10 @@ NRThreadPool::decreaseThreadObjects(int tid, QObject *o)
         TPDBG << "Count of objects on thread " << tid << "is 0, stopping it...";
         m_v[tid]->quit();
     }
+    mux.unlock();
+
+    // notify the new status
+    emit sigThreadAllocationChanged(threadAllocationMap());
 }
 
 
@@ -155,15 +163,11 @@ NRThreadPool::findTidOfObject(const QObject *o)
 void
 NRThreadPool::handleObjectDestruction(QObject *i_op)
 {
-
     TPDBG << "Object " << PTR2QSTRING(i_op) << "was destroyed... we should remove it from our threadpool";
     int tid = findTidOfObject(i_op);
     TPDBG << "Object was running on thread" << tid << "removing it...";
     this->decreaseThreadObjects(tid, i_op);
     TPDBG << this->getPoolStatus();
-
-    // notify the new status
-    emit sigThreadPoolStatusChanged(threadAllocationMap());
 }
 
 
