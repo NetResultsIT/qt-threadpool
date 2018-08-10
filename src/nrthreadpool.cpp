@@ -57,6 +57,9 @@ NRThreadPool::NRThreadPool(int numberOfThreads2Spawn, const QString &poolname, Q
         TPDBG << "Spawned Thread" << i << t;
         m_v.append( t );
         m_threadUsageCountMap.insert(i, RunningQThreadInfo(i));
+
+        connect(t, SIGNAL(started()), this, SLOT(handleThreadStarted()));
+        connect(t, SIGNAL(finished()), this, SLOT(handleThreadFinished()));
     }
 }
 
@@ -164,7 +167,6 @@ NRThreadPool::findTidOfObject(const QObject *o)
 }
 
 
-
 /*!
  * \brief NRThreadPool::handleObjectDestruction When an Object that was being run on the pool is destroyed we remove its reference and,
  * eventually, stop the thread (if no more objects are being run on it)
@@ -178,6 +180,37 @@ NRThreadPool::handleObjectDestruction(QObject *i_op)
     TPDBG << "Object was running on thread" << tid << "removing it...";
     this->decreaseThreadObjects(tid, i_op);
     TPDBG << this->getPoolStatus();
+}
+
+
+/*!
+ * \brief NRThreadPool::handleThreadStarted Log when a thread is started
+ */
+void
+NRThreadPool::handleThreadStarted()
+{
+    QThread *t = dynamic_cast<QThread*>(sender());
+    if (!t)
+    {
+        TPDBG << "Got NULL sender threadpool's thread!";
+        return;
+    }
+    TPDBG << "Threadpool's thread" << t->objectName() << "has been started";
+}
+
+/*!
+ * \brief NRThreadPool::handleThreadFinished Log when a thread is finished
+ */
+void
+NRThreadPool::handleThreadFinished()
+{
+    QThread *t = dynamic_cast<QThread*>(sender());
+    if (!t)
+    {
+        TPDBG << "Got NULL sender threadpool's thread!";
+        return;
+    }
+    TPDBG << "Threadpool's thread" << t->objectName() << "has been stopped";
 }
 
 

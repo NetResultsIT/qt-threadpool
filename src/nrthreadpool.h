@@ -77,6 +77,9 @@ private:
 private slots:
     void handleObjectDestruction(QObject *i_op);
 
+    void handleThreadStarted();
+    void handleThreadFinished();
+
 public:
     explicit NRThreadPool(int numberOfThreads2Spawn=0, const QString &poolname="NrTPool", QObject *parent = 0);
     virtual ~NRThreadPool();
