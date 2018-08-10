@@ -67,6 +67,13 @@ NRThreadPool::NRThreadPool(int numberOfThreads2Spawn, const QString &poolname, Q
 
 NRThreadPool::~NRThreadPool()
 {
+    /* let's reset thread usage map to avoid that threads going to be stopped
+     * will be restarted due to running objects on them.
+     */
+    for (int i = 0; i < m_numOfThreads; i++) {
+        m_threadUsageCountMap[i] = RunningQThreadInfo(i);
+    }
+
     foreach(QThread *t, m_v) {
         t->exit();
         t->wait();
@@ -199,18 +206,31 @@ NRThreadPool::handleThreadStarted()
 }
 
 /*!
- * \brief NRThreadPool::handleThreadFinished Log when a thread is finished
+ * \brief NRThreadPool::handleThreadFinished When a thread is finished we must restart it if it has any assigned objects
  */
 void
 NRThreadPool::handleThreadFinished()
 {
     QThread *t = dynamic_cast<QThread*>(sender());
-    if (!t)
-    {
+    if (!t) {
         TPDBG << "Got NULL sender threadpool's thread!";
         return;
     }
     TPDBG << "Threadpool's thread" << t->objectName() << "has been stopped";
+
+    // check whether the thread has assigned objects, if so let's restart it ASAP
+    mux.lock();
+    foreach (RunningQThreadInfo rti, m_threadUsageCountMap.values()) {
+        if (m_v[rti.associatedThread()] != t) {
+            continue;
+        }
+        if (rti.numAssignedObjects() > 0) {
+            TPDBG << "Thread " << rti.associatedThread() << " is going to be restarted because it has " << rti.numAssignedObjects() << "assigned objects!";
+            t->start();
+        }
+        break;
+    }
+    mux.unlock();
 }
 
 
